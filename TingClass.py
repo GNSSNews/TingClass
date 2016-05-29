@@ -1,7 +1,7 @@
 #!/usr/bin/paython
 # file name: TingClass.py
 
-__version__ = "ver 3.0";
+__version__ = "ver 3.1";
 ''' Author: GNSSNews
 	Email:  walnutcy@163.com
 '''
@@ -18,6 +18,8 @@ def mp3_download(dirPath, name, url) :
 		print('%s, HTTPError: %s' %(name, e.code));
 	except URLError as e:
 		print('%s, URLError: %s' %(name, e.reason));
+	except UnicodeEncodeError as e:
+		print('%s, UnicodeEncodeError: %s' %(name, e.reason));
 	else:
 		resp = fout.read();
 		fPath = dirPath + '\\' + name;
@@ -51,6 +53,8 @@ def mp3_search(localDir, fout, sTyName) :
 		sName = ss.a.get_text();
 		sName = sName.replace(u"：", "");
 		sName = sName.replace(sTyName, "");
+		sName = sName.replace(u":", " ");
+		sName = sName.replace(u"?", " ");
 		sName = sName.lstrip();
 		sName = sName.rstrip();
 		url = ss.a['href'];
@@ -69,7 +73,11 @@ def mp3_search(localDir, fout, sTyName) :
 			urldest = bsO1.find("a", text="MP3普通下载");
 			sName = sidx + '-' + sName + '.mp3';
 			# print('%s' % (urldest.attrs['href']));
-			mp3_download(localDir, sName, urldest.attrs['href']);
+			if os.path.exists(sName) :
+				print('---skip,%s' % (sName));
+			else :
+				mp3_download(localDir, sName, urldest.attrs['href']);
+			# End of { if os.path.exists(sfName1) }			
 		# End of { try: }
 	# End of { for ss in nameList }
 # End of function mp3_search
