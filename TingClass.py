@@ -1,7 +1,7 @@
 #!/usr/bin/paython
 # file name: TingClass.py
 
-__version__ = "ver 3.2";
+__version__ = "ver 3.3";
 ''' Author: GNSSNews
 	Email:  walnutcy@163.com
 '''
@@ -81,6 +81,7 @@ def mp3_searchItem(localDir, sidx, sName, url) :
 def mp3_search(localDir, fout, sTyName) :
 	bsObj = BeautifulSoup(fout, "html.parser");
 	nameList = bsObj.findAll("li", {"class":"clearfix"});
+	# print("search li<clearfix>");
 	number=0;
 	for ss in nameList:
 		number = number + 1;
@@ -95,11 +96,26 @@ def mp3_search(localDir, fout, sTyName) :
 
 	if (number == 0) :
 		nameList = bsObj.findAll("dl", {"class":"list-1-con clearfix"});
+		# print("search dl<clearfix>");
 		for ss in nameList:
+			number = number + 1;
 			sidx = ss.span.get_text();
 			sName = ss.a.get_text();
 			sName = sName.replace(sTyName, "");
 			mp3_searchItem(localDir, sidx, sName, ss.a['href']);
+	if (number == 0) :
+		nameList = bsObj.findAll("ul", {"class":"list-unit"});
+		# print("search ul<unit>");
+		for ss in nameList:
+			liList = ss.findAll("li");
+			for s1 in liList:
+				number = number + 1;
+				sidx = s1.em.get_text();
+				s1a = s1.find("a", {"class":"ell"});
+				sName = s1a.get_text();
+				sName = sName.replace(sTyName, "");
+				mp3_searchItem(localDir, sidx, sName, s1a.attrs['href']);
+			# End of { for s1 in liList }
 		# End of { for ss in nameList }
 	# End of { if (0 == number) }
 # End of function mp3_search
