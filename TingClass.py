@@ -1,7 +1,7 @@
 #!/usr/bin/paython
 # file name: TingClass.py
 
-__version__ = "ver 3.1";
+__version__ = "ver 3.2";
 ''' Author: GNSSNews
 	Email:  walnutcy@163.com
 '''
@@ -34,6 +34,35 @@ def mp3_download(dirPath, name, url) :
 	# End of { try: }
 # End of function mp3_download
 
+def mp3_searchItem(localDir, sidx, sName, url) :
+	sName = sName.replace(u"：", "");
+	sName = sName.replace(u":", " ");
+	sName = sName.replace(u"?", " ");
+	sName = sName.lstrip();
+	sName = sName.rstrip();
+	url = url.replace(u"show", u"down");
+	# print("%s,%s,%s" %(sidx, sName, url));
+	try:
+		fo1 = urllib.request.urlopen(url);
+	except HTTPError as e:
+		print('%s, HTTPError: %s' % (sName, e.code));
+	except URLError as e:
+		print('%s, URLError: %s' % (sName, e.reason));
+	else:
+		'''<a rel="external nofollow" href="http://down010702.tingclass.net/lesson/shi0529/0009/9695/2016_03_24_apes_and_movies.mp3"
+			class="lrc f16 botton" onclick="_hmt.push(['_trackEvent', 'mp3_download', 'click', 'mp3_download'])">MP3普通下载</a>'''
+		bsO1 = BeautifulSoup(fo1, "html.parser");
+		urldest = bsO1.find("a", text="MP3普通下载");
+		sName = sidx + '-' + sName + '.mp3';
+		# print('%s' % (urldest.attrs['href']));
+		if os.path.exists(sName) :
+			print('---skip,%s' % (sName));
+		else :
+			mp3_download(localDir, sName, urldest.attrs['href']);
+		# End of { if os.path.exists(sfName1) }			
+	# End of { try: }
+# End of function mp3_searchItem
+
 '''
 <li class="clearfix">
 <em class="fr">浏览：19</em>
@@ -42,44 +71,37 @@ def mp3_download(dirPath, name, url) :
 	target="_blank" title="科学一刻 猿和电影">科学一刻 猿和电影</a>
 </li>
 '''
+'''
+<dl class="list-1-con clearfix">
+<dt><span class="data-in fr">2016-03-31</span>
+<a href="http://www.tingclass.net/show-9735-360719-1.html" target="_blank">VOA常速英语：工人阶级的不满使特朗普在威斯康辛州人气大增</a>
+</dt>
+</dl>
+'''
 def mp3_search(localDir, fout, sTyName) :
 	bsObj = BeautifulSoup(fout, "html.parser");
 	nameList = bsObj.findAll("li", {"class":"clearfix"});
+	number=0;
 	for ss in nameList:
+		number = number + 1;
 		sidx = ss.span.get_text();
 		sidx = sidx.replace(u"第", "");
 		sidx = sidx.replace(u"课", "");
 		sidx = sidx.replace(u":", "");
 		sName = ss.a.get_text();
-		sName = sName.replace(u"：", "");
 		sName = sName.replace(sTyName, "");
-		sName = sName.replace(u":", " ");
-		sName = sName.replace(u"?", " ");
-		sName = sName.lstrip();
-		sName = sName.rstrip();
-		url = ss.a['href'];
-		url = url.replace(u"show", u"down");
-		# print("%s,%s,%s" %(sidx, sName, url));
-		try:
-			fo1 = urllib.request.urlopen(url);
-		except HTTPError as e:
-			print('%s, HTTPError: %s' % (sName, e.code));
-		except URLError as e:
-			print('%s, URLError: %s' % (sName, e.reason));
-		else:
-			'''<a rel="external nofollow" href="http://down010702.tingclass.net/lesson/shi0529/0009/9695/2016_03_24_apes_and_movies.mp3"
-   				class="lrc f16 botton" onclick="_hmt.push(['_trackEvent', 'mp3_download', 'click', 'mp3_download'])">MP3普通下载</a>'''
-			bsO1 = BeautifulSoup(fo1, "html.parser");
-			urldest = bsO1.find("a", text="MP3普通下载");
-			sName = sidx + '-' + sName + '.mp3';
-			# print('%s' % (urldest.attrs['href']));
-			if os.path.exists(sName) :
-				print('---skip,%s' % (sName));
-			else :
-				mp3_download(localDir, sName, urldest.attrs['href']);
-			# End of { if os.path.exists(sfName1) }			
-		# End of { try: }
+		mp3_searchItem(localDir, sidx, sName, ss.a['href']);
 	# End of { for ss in nameList }
+
+	if (number == 0) :
+		nameList = bsObj.findAll("dl", {"class":"list-1-con clearfix"});
+		for ss in nameList:
+			sidx = ss.span.get_text();
+			sName = ss.a.get_text();
+			sName = sName.replace(sTyName, "");
+			mp3_searchItem(localDir, sidx, sName, ss.a['href']);
+		# End of { for ss in nameList }
+	# End of { if (0 == number) }
 # End of function mp3_search
 
 def mp3_spider(localDir, urlDir, idxMin, idxMax, sTyName):
